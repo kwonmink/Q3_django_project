@@ -3,9 +3,10 @@ from .forms import PostForm
 from django.utils import timezone
 from .models import Post
 
+
 # Create your views here.
 def post_list(request):
-    posts = Post.objects.filter(published_date__lte=timezone.now()).order_by('published_date')
+    posts = Post.objects.filter(published_date__lte=timezone.now()).order_by('-published_date')
     return render(request, 'blog/post_list.html', {'posts':posts})
 
 def post_detail(request, pk):
@@ -40,3 +41,23 @@ def post_edit(request, pk):
         form = PostForm(instance=post)
 
     return render(request, 'blog/post_edit.html', {'form':form})
+
+# def post_remove(request, pk):
+#     post = get_object_or_404(Post, pk=pk)
+#     post.delete()
+#     return redirect('blog:post_list', pk=post.pk)
+#     return render(request, 'blog/post_list.html', {'form':form})
+
+def post_remove(request, pk):
+    post=get_object_or_404(Post, pk=pk)
+    if request.method == "POST":
+        form = PostForm(request.POST, instance=post)
+        if form.is_valid():
+            # post=form.save(commit=False)
+            post.author = request.user
+            # post.published_date=timezone.now()
+            post.delete()
+    else:
+        form = PostForm(instance=post)
+        post.delete()
+    return render(request, 'blog/post_list.html',{'form':form})
